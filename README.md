@@ -49,19 +49,19 @@ The platform processes financial market data, generates AI-based investment sign
 # System Architecture
 
 Market Data Collection
-        ↓
+        --->
 Fundamental Analysis
-        ↓
+        --->
 News Sentiment Analysis
-        ↓
+        --->
 Agentic AI Governance System
-        ↓
+        --->
 Portfolio Construction Engine
-        ↓
+        --->
 Backtesting Engine
-        ↓
+        --->
 Analytics Engine
-        ↓
+        --->
 Interactive Dashboard
 
 ---
