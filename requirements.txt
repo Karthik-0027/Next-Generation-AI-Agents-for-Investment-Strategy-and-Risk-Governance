@@ -1,0 +1,9 @@
+flask
+pymongo
+pandas
+numpy
+plotly
+yfinance
+vaderSentiment
+feedparser
+scikit-learn
