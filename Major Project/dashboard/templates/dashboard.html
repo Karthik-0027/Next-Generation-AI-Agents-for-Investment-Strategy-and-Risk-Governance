@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Next-Gen AI Agents — Investment & Risk Governance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary-fixed":            "#00fd87",
+        "primary-container":        "#00fd87",
+        "outline":                  "#737679",
+        "surface-container":        "#161a1e",
+        "on-surface":               "#f8f9fe",
+        "surface-variant":          "#22262b",
+        "tertiary-fixed":           "#8eafff",
+        "background":               "#0b0e11",
+        "surface-container-low":    "#101417",
+        "tertiary":                 "#6e9bff",
+        "surface-container-high":   "#1c2024",
+        "on-background":            "#f8f9fe",
+        "tertiary-container":       "#2778fe",
+        "on-primary-container":     "#005b2c",
+        "surface-container-highest":"#22262b",
+        "secondary":                "#ff716b",
+        "on-surface-variant":       "#a9abaf",
+        "primary-dim":              "#00ed7e",
+        "error":                    "#ff716c",
+        "primary-fixed-dim":        "#00ed7e",
+        "outline-variant":          "#45484c",
+        "on-primary-fixed":         "#004621",
+        "error-container":          "#9f0519",
+        "on-error":                 "#490006",
+        "error-dim":                "#d7383b",
+        "primary":                  "#a4ffb9",
+        "tertiary-dim":             "#0f6df3",
+        "surface-bright":           "#282d31",
+        "surface":                  "#0b0e11",
+        "inverse-primary":          "#006e37"
+      },
+      fontFamily: { headline:["Inter"], body:["Inter"], label:["Inter"] },
+      borderRadius: { DEFAULT:"0.25rem", lg:"0.5rem", xl:"0.75rem", full:"9999px" },
+    },
+  },
+}
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .glass-card { background:linear-gradient(135deg,rgba(34,38,43,.8) 0%,rgba(16,20,23,.9) 100%); backdrop-filter:blur(10px); }
+  .ticker-scroll { display:flex; animation:scroll 35s linear infinite; }
+  @keyframes scroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+  .signal-buy  { color:#00fd87; font-weight:900; }
+  .signal-hold { color:#a9abaf; font-weight:900; }
+  .signal-sell { color:#ff716c; font-weight:900; }
+  .skeleton { background:linear-gradient(90deg,#161a1e 25%,#22262b 50%,#161a1e 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:4px; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  .plotly .modebar { display:none !important; }
+
+  /* Active nav link style */
+  .nav-link { display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; cursor:pointer; transition:all 0.2s; font-size:0.875rem; font-weight:500; color:#94a3b8; }
+  .nav-link:hover { color:#00fd87; background:rgba(15,23,42,0.8); }
+  .nav-link.active { background:rgba(0,253,135,0.1); color:#00fd87; border-right:2px solid #00fd87; }
+</style>
+</head>
+
+<body class="bg-background text-on-surface font-body antialiased">
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside class="fixed left-0 top-0 h-full z-40 w-64 border-r border-primary-fixed/10 bg-slate-950 flex flex-col shadow-[4px_0_24px_rgba(0,255,136,0.05)]">
+  <div class="p-6">
+    <h1 class="text-xl font-black tracking-tighter text-primary-fixed uppercase">Next-Gen AI</h1>
+    <p class="text-[10px] text-on-surface-variant tracking-[0.2em] uppercase mt-1">Investment & Risk Hub</p>
+  </div>
+
+  <nav class="mt-2 px-2 space-y-1 flex-1" id="sidebar-nav">
+    <a class="nav-link active" data-section="overview-section">
+      <span class="material-symbols-outlined text-xl">dashboard</span>
+      <span>Overview</span>
+    </a>
+    <a class="nav-link" data-section="equity-section">
+      <span class="material-symbols-outlined text-xl">auto_graph</span>
+      <span>Equity Curve</span>
+    </a>
+    <a class="nav-link" data-section="agents-section">
+      <span class="material-symbols-outlined text-xl">account_tree</span>
+      <span>AI Agents</span>
+    </a>
+    <a class="nav-link" data-section="decisions-section">
+      <span class="material-symbols-outlined text-xl">table_rows</span>
+      <span>Decisions Table</span>
+    </a>
+    <a class="nav-link" data-section="risk-section">
+      <span class="material-symbols-outlined text-xl">insights</span>
+      <span>Risk Analytics</span>
+    </a>
+  </nav>
+
+  <div class="px-6 pb-8">
+    <button onclick="triggerRefresh()" id="rebalance-btn"
+      class="w-full py-3 bg-primary-fixed text-on-primary font-black text-xs tracking-widest rounded-sm hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,253,135,0.2)]">
+      ↺ REBALANCE PORTFOLIO
+    </button>
+    <div class="mt-4 flex items-center space-x-3 p-2 bg-surface-container-low rounded-lg">
+      <div class="w-8 h-8 rounded bg-primary-fixed/20 flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary-fixed text-sm">person</span>
+      </div>
+      <div>
+        <p class="text-[10px] text-on-surface-variant font-bold leading-none">ANALYST_01</p>
+        <p class="text-[9px] text-primary-fixed uppercase tracking-tighter mt-0.5" id="system-status">Connecting...</p>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════ TOP BAR ═══════════ -->
+<header class="fixed top-0 right-0 left-64 h-16 flex items-center justify-between px-8 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-primary-fixed/10 text-sm tracking-widest">
+  <span class="text-primary-fixed font-black text-base italic uppercase">AI Strategy Dashboard</span>
+
+  <!-- Ticker Tape -->
+  <div class="flex-1 mx-8 overflow-hidden h-8 flex items-center border border-primary-fixed/10 rounded bg-surface-container-low">
+    <div class="ticker-scroll gap-0" id="ticker-tape">
+      <span class="text-[10px] text-on-surface-variant px-6 whitespace-nowrap">Loading market data...</span>
+    </div>
+  </div>
+
+  <div class="flex items-center space-x-4 text-[10px]">
+    <span class="text-on-surface-variant font-mono" id="last-updated">--</span>
+    <span class="material-symbols-outlined text-primary-fixed animate-pulse text-base">sensors</span>
+    <span class="bg-primary-fixed/10 text-primary-fixed px-3 py-1 border border-primary-fixed/30 font-bold uppercase">
+      DB: stock_ai_project
+    </span>
+  </div>
+</header>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main class="fixed inset-0 left-64 top-16 bg-surface overflow-y-auto" id="main-scroll">
+
+  <!-- Ambient glows -->
+  <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-fixed/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+  <div class="absolute bottom-0 left-0 w-[300px] h-[300px] bg-primary-fixed/5 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+
+  <div class="relative p-8 max-w-7xl mx-auto">
+
+    <!-- Page Title -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+      <div>
+        <h2 class="text-4xl font-black tracking-tighter mb-2">
+          AGENTIC AI <span class="text-primary-fixed">Dashboard</span>
+        </h2>
+        <p class="text-on-surface-variant font-light text-sm max-w-md">
+          Next-Generation AI Agents for Investment Strategy and Risk Governance
+        </p>
+      </div>
+      <div class="flex items-center gap-3 bg-surface-container p-3 rounded-xl border border-primary-fixed/5 text-[10px]">
+        <span class="w-2 h-2 rounded-full bg-primary-fixed animate-pulse"></span>
+        <span class="text-on-surface-variant uppercase font-bold">Live · Auto-refresh 10s</span>
+        <span class="text-on-surface-variant">|</span>
+        <span class="text-primary-fixed font-bold" id="portfolio-size-badge">-- stocks</span>
+      </div>
+    </div>
+
+    <!-- ══════ SECTION: OVERVIEW ══════ -->
+    <div id="overview-section" class="scroll-mt-8">
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <span class="material-symbols-outlined text-5xl text-primary">trending_up</span>
+          </div>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-[0.2em] font-bold">Portfolio Return</p>
+          <h3 class="text-4xl font-black text-primary-fixed mt-2" id="kpi-return">
+            <span class="skeleton inline-block w-24 h-9">&nbsp;</span>
+          </h3>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-4">5-Year Strategy</p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <span class="material-symbols-outlined text-5xl text-tertiary">rocket_launch</span>
+          </div>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-[0.2em] font-bold">Alpha</p>
+          <h3 class="text-4xl font-black text-tertiary-fixed mt-2" id="kpi-alpha">
+            <span class="skeleton inline-block w-20 h-9">&nbsp;</span>
+          </h3>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-4">vs Benchmark (AAPL)</p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <span class="material-symbols-outlined text-5xl text-on-surface">balance</span>
+          </div>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-[0.2em] font-bold">Sharpe Ratio</p>
+          <h3 class="text-4xl font-black text-on-surface mt-2 tracking-tight" id="kpi-sharpe">
+            <span class="skeleton inline-block w-16 h-9">&nbsp;</span>
+          </h3>
+          <div class="mt-4 w-full bg-surface-container-highest h-1 rounded-full">
+            <div id="sharpe-bar" class="bg-primary-fixed h-full rounded-full shadow-[0_0_8px_#00FF88] transition-all duration-700" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <span class="material-symbols-outlined text-5xl text-error">warning</span>
+          </div>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-[0.2em] font-bold">Max Drawdown</p>
+          <h3 class="text-4xl font-black text-error-dim mt-2" id="kpi-drawdown">
+            <span class="skeleton inline-block w-20 h-9">&nbsp;</span>
+          </h3>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-4">Peak-to-Trough</p>
+        </div>
+      </div>
+
+      <!-- Allocation + Decision Distribution -->
+      <div class="grid grid-cols-1 lg:grid-cols-10 gap-6 mb-6">
+        <div class="lg:col-span-4 glass-card p-6 rounded-2xl flex flex-col">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-xs font-black uppercase tracking-widest">Portfolio Allocation</h4>
+            <span class="text-[10px] text-primary-fixed font-bold" id="total-capital-badge">₹/$ --</span>
+          </div>
+          <div id="allocation-chart" style="height:240px;"></div>
+          <div class="grid grid-cols-2 gap-2 mt-3" id="allocation-legend"></div>
+        </div>
+
+        <div class="lg:col-span-6 glass-card p-6 rounded-2xl flex flex-col">
+          <div class="flex justify-between items-center mb-6">
+            <h4 class="text-xs font-black uppercase tracking-widest">AI Decision Distribution</h4>
+            <span class="text-[10px] font-bold text-on-surface-variant uppercase">
+              Total: <span id="total-stocks" class="text-primary-fixed">--</span> stocks
+            </span>
+          </div>
+          <div class="flex-1 flex items-end gap-6 pb-4" style="min-height:160px">
+            <div class="flex-1 flex flex-col items-center gap-3">
+              <div class="w-full bg-surface-container-highest rounded-t-lg relative h-36 flex items-end">
+                <div id="bar-buy" class="w-full bg-primary-container/20 rounded-t-lg border-t-2 border-primary-fixed shadow-[0_0_15px_rgba(0,255,136,0.2)] transition-all duration-700" style="height:0%"></div>
+                <span id="pct-buy" class="absolute -top-6 left-1/2 -translate-x-1/2 text-primary font-black text-xs">--</span>
+              </div>
+              <span class="text-[10px] font-black uppercase tracking-widest text-primary">BUY</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-3">
+              <div class="w-full bg-surface-container-highest rounded-t-lg relative h-36 flex items-end">
+                <div id="bar-hold" class="w-full bg-on-surface-variant/10 rounded-t-lg border-t-2 border-outline transition-all duration-700" style="height:0%"></div>
+                <span id="pct-hold" class="absolute -top-6 left-1/2 -translate-x-1/2 text-on-surface-variant font-black text-xs">--</span>
+              </div>
+              <span class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">HOLD</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-3">
+              <div class="w-full bg-surface-container-highest rounded-t-lg relative h-36 flex items-end">
+                <div id="bar-sell" class="w-full bg-error-container/20 rounded-t-lg border-t-2 border-error-dim transition-all duration-700" style="height:0%"></div>
+                <span id="pct-sell" class="absolute -top-6 left-1/2 -translate-x-1/2 text-error font-black text-xs">--</span>
+              </div>
+              <span class="text-[10px] font-black uppercase tracking-widest text-error">SELL</span>
+            </div>
+          </div>
+          <div class="mt-3 p-4 rounded-xl bg-surface-container-low border border-outline-variant/10">
+            <p class="text-[10px] text-on-surface-variant leading-relaxed" id="ai-insight">Loading AI insight...</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /overview-section -->
+
+    <!-- ══════ SECTION: EQUITY CURVE ══════ -->
+    <div id="equity-section" class="scroll-mt-8 mb-6">
+      <div class="glass-card p-8 rounded-2xl">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <h4 class="text-xs font-black uppercase tracking-widest mb-1">Portfolio Equity Curve vs Benchmark</h4>
+            <p class="text-[10px] text-on-surface-variant uppercase tracking-widest">5Y Backtest · Benchmark: AAPL</p>
+          </div>
+          <div class="flex gap-6 text-[10px]">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-0.5 bg-primary-fixed"></div>
+              <span class="font-bold text-on-surface uppercase tracking-widest">AI Portfolio</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-0.5 bg-outline"></div>
+              <span class="font-bold text-on-surface-variant uppercase tracking-widest">Benchmark</span>
+            </div>
+          </div>
+        </div>
+        <div id="equity-chart" style="height:320px;"></div>
+      </div>
+    </div>
+
+    <!-- ══════ SECTION: AI AGENTS ══════ -->
+    <div id="agents-section" class="scroll-mt-8 mb-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Agent Contribution Bars -->
+        <div class="glass-card p-6 rounded-2xl">
+          <h4 class="text-xs font-black uppercase tracking-widest mb-6">Agent Contribution Weights</h4>
+          <div class="space-y-5">
+            <div>
+              <div class="flex justify-between items-center mb-1.5">
+                <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Fundamentals Agent</span>
+                <span class="text-sm font-black text-primary-fixed">40%</span>
+              </div>
+              <div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-primary-fixed" style="width:40%"></div>
+              </div>
+              <p class="text-[9px] text-on-surface-variant mt-1 uppercase tracking-widest">Profitability · Liquidity · Leverage · Growth</p>
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-1.5">
+                <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Sentiment Agent</span>
+                <span class="text-sm font-black text-tertiary">20%</span>
+              </div>
+              <div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-tertiary" style="width:20%"></div>
+              </div>
+              <p class="text-[9px] text-on-surface-variant mt-1 uppercase tracking-widest">Google News RSS · VADER Sentiment</p>
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-1.5">
+                <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Strategy Agent</span>
+                <span class="text-sm font-black" style="color:#77a1ff">40%</span>
+              </div>
+              <div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                <div class="h-full rounded-full" style="width:40%;background:#77a1ff"></div>
+              </div>
+              <p class="text-[9px] text-on-surface-variant mt-1 uppercase tracking-widest">SMA 50 / SMA 200 Crossover</p>
+            </div>
+          </div>
+          <div class="mt-6 p-4 rounded-xl bg-surface-container-low border border-outline-variant/10">
+            <p class="text-[9px] text-on-surface-variant uppercase tracking-widest font-bold mb-1">Composite Score Formula</p>
+            <p class="text-[10px] text-primary-fixed font-mono">
+              Score = (Fund × 0.4) + (Sent × 0.2) + (Strat × 0.4) → BUY ≥ 60 · HOLD 40–60 · SELL &lt; 40
+            </p>
+          </div>
+        </div>
+
+        <!-- Conviction Gauge -->
+        <div class="glass-card p-6 rounded-2xl flex flex-col items-center justify-center text-center">
+          <h4 class="text-xs font-black uppercase tracking-widest mb-4 self-start">Portfolio Conviction Score</h4>
+          <div class="relative flex items-center justify-center">
+            <svg class="w-48 h-48">
+              <circle cx="96" cy="96" fill="transparent" r="80" stroke="#22262b" stroke-width="12"></circle>
+              <circle id="confidence-arc" cx="96" cy="96" fill="transparent" r="80"
+                stroke="#00fd87" stroke-dasharray="502.6" stroke-dashoffset="502.6"
+                stroke-linecap="round" stroke-width="12"
+                style="transform:rotate(-90deg);transform-origin:96px 96px;transition:stroke-dashoffset 1.2s ease-in-out;">
+              </circle>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span class="text-5xl font-black tracking-tighter" id="confidence-score">--</span>
+              <span class="text-xs font-bold text-primary-fixed uppercase tracking-[0.3em]">Conviction</span>
+            </div>
+          </div>
+          <div class="mt-4 grid grid-cols-3 gap-4 w-full">
+            <div class="text-center p-2 bg-surface-container-low rounded-lg">
+              <p class="text-[9px] font-bold text-on-surface-variant uppercase mb-1">Buy Stocks</p>
+              <p class="text-sm font-black text-primary-fixed" id="conf-buy-count">--</p>
+            </div>
+            <div class="text-center p-2 bg-surface-container-low rounded-lg">
+              <p class="text-[9px] font-bold text-on-surface-variant uppercase mb-1">Portfolio Size</p>
+              <p class="text-sm font-black text-on-surface" id="conf-portfolio-size">--</p>
+            </div>
+            <div class="text-center p-2 bg-surface-container-low rounded-lg">
+              <p class="text-[9px] font-bold text-on-surface-variant uppercase mb-1">Capital</p>
+              <p class="text-sm font-black text-tertiary" id="conf-capital">--</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /agents-section -->
+
+    <!-- ══════ SECTION: DECISIONS TABLE ══════ -->
+    <div id="decisions-section" class="scroll-mt-8 mb-6">
+      <div class="glass-card p-0 rounded-2xl overflow-hidden">
+        <div class="p-8">
+          <div class="flex justify-between items-center mb-6">
+            <h4 class="text-xs font-black uppercase tracking-widest">AI Decisions &amp; Recommendations</h4>
+            <span class="text-[10px] text-on-surface-variant uppercase font-bold">
+              Governance Agent · Composite Scoring
+            </span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-separate border-spacing-y-2">
+              <thead>
+                <tr class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">
+                  <th class="pb-4 pl-4">Symbol</th>
+                  <th class="pb-4">Composite Score</th>
+                  <th class="pb-4">Confidence</th>
+                  <th class="pb-4">Fund · Sent · Strat</th>
+                  <th class="pb-4 text-right pr-4">AI Decision</th>
+                </tr>
+              </thead>
+              <tbody id="decisions-tbody">
+                <tr><td colspan="5" class="text-center py-8">
+                  <span class="skeleton inline-block w-64 h-4">&nbsp;</span>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Top Picks Cards -->
+        <div class="bg-surface-container-low/50 p-8 border-t border-outline-variant/10">
+          <h4 class="text-xs font-black uppercase tracking-widest mb-6">Top AI Picks (by Composite Score)</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4" id="recommendation-cards"></div>
+        </div>
+      </div>
+    </div><!-- /decisions-section -->
+
+    <!-- ══════ SECTION: RISK ANALYTICS ══════ -->
+    <div id="risk-section" class="scroll-mt-8 mb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-card p-6 rounded-2xl">
+          <h4 class="text-xs font-black uppercase tracking-widest mb-4">Portfolio Drawdown</h4>
+          <div id="drawdown-chart" style="height:220px;"></div>
+        </div>
+        <div class="glass-card p-6 rounded-2xl">
+          <h4 class="text-xs font-black uppercase tracking-widest mb-4">Cumulative Return</h4>
+          <div id="cumulative-chart" style="height:220px;"></div>
+        </div>
+      </div>
+    </div><!-- /risk-section -->
+
+  </div><!-- /max-w-7xl -->
+</main>
+
+<!-- FAB -->
+<button onclick="triggerRefresh()" class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-[0_0_25px_rgba(0,255,136,0.5)] flex items-center justify-center hover:scale-110 transition-transform z-50" title="Refresh">
+  <span class="material-symbols-outlined font-black">refresh</span>
+</button>
+
+<!-- ═══════════ JAVASCRIPT ═══════════ -->
+<script>
+
+// ── Sidebar Navigation ────────────────────────────────────────────────────
+function scrollToSection(sectionId) {
+  const mainEl = document.getElementById('main-scroll');
+  const target = document.getElementById(sectionId);
+  if (!target || !mainEl) return;
+  // Scroll the main panel (not window) to the section
+  mainEl.scrollTo({ top: target.offsetTop - 16, behavior: 'smooth' });
+}
+
+// Wire up all nav links
+document.addEventListener('DOMContentLoaded', () => {
+  const navLinks = document.querySelectorAll('#sidebar-nav .nav-link');
+
+  navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      // Update active state
+      navLinks.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      // Scroll to section
+      const sectionId = link.getAttribute('data-section');
+      scrollToSection(sectionId);
+    });
+  });
+
+  // Highlight active nav on scroll
+  const mainEl = document.getElementById('main-scroll');
+  mainEl.addEventListener('scroll', () => {
+    const sections = ['overview-section','equity-section','agents-section','decisions-section','risk-section'];
+    let current = sections[0];
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.offsetTop - 80 <= mainEl.scrollTop) current = id;
+    });
+    navLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('data-section') === current);
+    });
+  });
+
+  // Boot data
+  refreshAll();
+  setInterval(refreshAll, 10000);
+});
+
+// ── Plotly config ─────────────────────────────────────────────────────────
+const BG     = 'rgba(0,0,0,0)';
+const FONT   = '#a9abaf';
+const GREEN  = '#00fd87';
+const BLUE   = '#6e9bff';
+const RED    = '#ff716c';
+const PURPLE = '#77a1ff';
+const COLORS = [GREEN, BLUE, RED, PURPLE, '#ffc3be', '#00ed7e', '#8eafff', '#d7383b'];
+
+const layout = (extra = {}) => ({
+  paper_bgcolor: BG, plot_bgcolor: BG,
+  font: { family:'Inter', color:FONT, size:10 },
+  margin: { t:10, b:36, l:50, r:16 },
+  xaxis: { gridcolor:'#22262b', zeroline:false },
+  yaxis: { gridcolor:'#22262b', zeroline:false },
+  legend: { bgcolor:BG, font:{ color:FONT, size:10 } },
+  ...extra,
+});
+const cfg = { displayModeBar:false, responsive:true };
+
+// ── Formatters ────────────────────────────────────────────────────────────
+const fmtPct = (v, d=2) => { const n = parseFloat(v)*100; return (n>=0?'+':'')+n.toFixed(d)+'%'; };
+const fmtNum = (v, d=2) => parseFloat(v).toFixed(d);
+
+// ── 1. Performance KPIs ───────────────────────────────────────────────────
+async function loadPerformance() {
+  try {
+    const d = await fetch('/api/performance').then(r => r.json());
+    document.getElementById('kpi-return').textContent   = fmtPct(d.portfolio_return);
+    document.getElementById('kpi-alpha').textContent    = fmtPct(d.alpha);
+    document.getElementById('kpi-sharpe').textContent   = fmtNum(d.sharpe_ratio);
+    document.getElementById('kpi-drawdown').textContent = fmtPct(d.max_drawdown);
+    document.getElementById('kpi-return').style.color   = parseFloat(d.portfolio_return)>=0 ? GREEN : RED;
+    document.getElementById('sharpe-bar').style.width   = Math.min(Math.abs(d.sharpe_ratio)/5*100,100)+'%';
+    document.getElementById('portfolio-size-badge').textContent = (d.portfolio_size||'--')+' stocks';
+    const cap = d.total_capital_allocated;
+    document.getElementById('conf-capital').textContent = cap ? (cap>1000?(cap/1000).toFixed(1)+'K':cap.toFixed(0)) : '--';
+    document.getElementById('conf-portfolio-size').textContent = d.portfolio_size || '--';
+  } catch(e) { console.error('[Performance]',e); }
+}
+
+// ── 2. Portfolio Allocation Donut ─────────────────────────────────────────
+async function loadAllocation() {
+  try {
+    const records = await fetch('/api/portfolio').then(r => r.json());
+    if (!records.length) return;
+    const labels = records.map(r => r.symbol);
+    const values = records.map(r => r.capital_allocated || r.allocation_weight || 1);
+    Plotly.newPlot('allocation-chart', [{
+      type:'pie', labels, values, hole:0.58,
+      marker:{ colors:COLORS.slice(0,labels.length) },
+      textinfo:'none',
+      hovertemplate:'<b>%{label}</b><br>Capital: %{value:,.0f}<br>%{percent}<extra></extra>',
+    }], { ...layout({showlegend:false}), margin:{t:0,b:0,l:0,r:0} }, cfg);
+    document.getElementById('allocation-legend').innerHTML =
+      records.map((r,i) => `
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${COLORS[i%COLORS.length]}"></span>
+          <span class="text-[9px] font-bold text-on-surface-variant uppercase">${r.symbol}</span>
+          <span class="text-[9px] text-primary-fixed font-mono ml-auto">${(r.allocation_weight*100).toFixed(1)}%</span>
+        </div>`).join('');
+    const total = records.reduce((s,r) => s+(r.capital_allocated||0), 0);
+    document.getElementById('total-capital-badge').textContent =
+      '₹/$ '+(total>1000?(total/1000).toFixed(1)+'K':total.toFixed(0));
+  } catch(e) { console.error('[Allocation]',e); }
+}
+
+// ── 3. AI Decisions ───────────────────────────────────────────────────────
+async function loadDecisions() {
+  try {
+    const data = await fetch('/api/decisions').then(r => r.json());
+    const dist = data.distribution;
+
+    ['buy','hold','sell'].forEach(s => {
+      document.getElementById(`bar-${s}`).style.height = dist[s]+'%';
+      document.getElementById(`pct-${s}`).textContent  = dist[s]+'%';
+    });
+    document.getElementById('total-stocks').textContent = dist.total;
+    document.getElementById('conf-buy-count').textContent = Math.round(dist.buy/100*dist.total)+' BUY';
+
+    const dom = dist.buy>=dist.hold && dist.buy>=dist.sell ? 'BULLISH' : dist.sell>=dist.hold ? 'BEARISH' : 'NEUTRAL';
+    const c   = dom==='BULLISH' ? 'text-primary-fixed' : dom==='BEARISH' ? 'text-error-dim' : 'text-on-surface-variant';
+    document.getElementById('ai-insight').innerHTML =
+      `Governance Agent: <span class="${c} font-bold">${dom}</span> — 
+       ${dist.buy}% BUY · ${dist.hold}% HOLD · ${dist.sell}% SELL across ${dist.total} stocks. 
+       Composite = 40% Fundamentals + 20% Sentiment + 40% Strategy.`;
+
+    const score = dist.buy;
+    document.getElementById('confidence-score').textContent = score;
+    document.getElementById('confidence-arc').style.strokeDashoffset = 502.6*(1-score/100);
+
+    // Decisions table
+    document.getElementById('decisions-tbody').innerHTML =
+      (data.records||[]).map(r => {
+        const sc  = parseFloat(r.composite_score);
+        const pct = Math.min(Math.round(sc),100);
+        const sig = r.final_decision;
+        const conf= (r.confidence_score||0).toFixed(3);
+        const ab  = r.symbol.slice(0,2).toUpperCase();
+        const badge = sig==='BUY' ? 'bg-primary text-on-primary'
+          : sig==='SELL' ? 'bg-error/10 text-error-dim border border-error/20'
+          : 'bg-surface-bright text-on-surface-variant';
+        return `
+          <tr class="bg-surface-container-low hover:bg-surface-container transition-all">
+            <td class="py-3 pl-4 rounded-l-xl">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-surface-bright flex items-center justify-center font-black text-xs">${ab}</div>
+                <p class="text-xs font-black">${r.symbol}</p>
+              </div>
+            </td>
+            <td class="py-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono font-bold">${sc.toFixed(1)}</span>
+                <div class="w-20 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+                  <div class="bg-primary h-full" style="width:${pct}%"></div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3"><span class="text-xs font-mono text-on-surface-variant">${conf}</span></td>
+            <td class="py-3">
+              <span class="text-[9px] font-bold signal-${(r.fundamentals_signal||'').toLowerCase()}">${r.fundamentals_signal||'—'}</span>
+              <span class="text-on-surface-variant mx-1">·</span>
+              <span class="text-[9px] font-bold signal-${(r.sentiment_signal||'').toLowerCase()}">${r.sentiment_signal||'—'}</span>
+              <span class="text-on-surface-variant mx-1">·</span>
+              <span class="text-[9px] font-bold signal-${(r.strategy_signal||'').toLowerCase()}">${r.strategy_signal||'—'}</span>
+            </td>
+            <td class="py-3 text-right pr-4 rounded-r-xl">
+              <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md ${badge}">${sig}</span>
+            </td>
+          </tr>`;
+      }).join('') || '<tr><td colspan="5" class="text-center py-6 text-on-surface-variant text-xs">No decisions found.</td></tr>';
+
+    // Top 5 cards
+    const top5 = (data.records||[]).slice(0,5);
+    const brdCls = s => s==='BUY'?'border-primary/20':s==='SELL'?'border-error/10':'';
+    const bdgCls = s => s==='BUY'?'bg-primary/20 text-primary-fixed':s==='SELL'?'bg-error/10 text-error-dim border border-error/20':'bg-surface-bright text-on-surface-variant';
+    document.getElementById('recommendation-cards').innerHTML = top5.map(r => `
+      <div class="glass-card p-4 rounded-2xl border ${brdCls(r.final_decision)}">
+        <div class="flex justify-between items-start mb-3">
+          <h5 class="text-sm font-black">${r.symbol}</h5>
+          <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${bdgCls(r.final_decision)}">${r.final_decision}</span>
+        </div>
+        <p class="text-[10px] text-primary-fixed font-bold mb-1">Score: ${parseFloat(r.composite_score).toFixed(1)}</p>
+        <p class="text-[10px] text-on-surface-variant leading-relaxed">${r.explanation}</p>
+      </div>`).join('');
+
+  } catch(e) { console.error('[Decisions]',e); }
+}
+
+// ── 4. Equity Curve + Drawdown + Cumulative ───────────────────────────────
+async function loadEquityCurve() {
+  try {
+    const d = await fetch('/api/equity-curve').then(r => r.json());
+    if (!d.dates||!d.dates.length) return;
+
+    Plotly.newPlot('equity-chart', [
+      { x:d.dates, y:d.portfolio, name:'AI Portfolio', type:'scatter', mode:'lines',
+        line:{color:GREEN,width:2.5}, fill:'tozeroy', fillcolor:'rgba(0,253,135,0.04)' },
+      { x:d.dates, y:d.benchmark, name:'Benchmark (AAPL)', type:'scatter', mode:'lines',
+        line:{color:'#737679',width:1.5,dash:'dot'} }
+    ], layout({showlegend:true}), cfg);
+
+    Plotly.newPlot('drawdown-chart', [{
+      x:d.dates, y:d.drawdown, name:'Drawdown', type:'scatter', mode:'lines',
+      line:{color:RED,width:1.5}, fill:'tozeroy', fillcolor:'rgba(255,113,108,0.07)',
+    }], layout({showlegend:false, yaxis:{tickformat:'.1%',gridcolor:'#22262b'}}), cfg);
+
+    Plotly.newPlot('cumulative-chart', [{
+      x:d.dates, y:d.cumulative, name:'Cumulative Return', type:'scatter', mode:'lines',
+      line:{color:BLUE,width:2}, fill:'tozeroy', fillcolor:'rgba(110,155,255,0.05)',
+    }], layout({showlegend:false, yaxis:{tickformat:'.1%',gridcolor:'#22262b'}}), cfg);
+
+  } catch(e) { console.error('[Equity Curve]',e); }
+}
+
+// ── 5. Ticker Tape ────────────────────────────────────────────────────────
+async function loadTicker() {
+  try {
+    const records = await fetch('/api/ticker').then(r => r.json());
+    if (!records.length) return;
+    const items = [...records,...records];
+    document.getElementById('ticker-tape').innerHTML = items.map(r => {
+      const chg = parseFloat(r.change_pct||0);
+      return `<span class="px-5 text-[10px] font-bold whitespace-nowrap" style="color:${chg>=0?GREEN:RED}">
+        ${r.symbol} ${chg>=0?'▲':'▼'} ${Math.abs(chg).toFixed(2)}%
+      </span>`;
+    }).join('');
+  } catch(e) { console.error('[Ticker]',e); }
+}
+
+// ── 6. System Status ──────────────────────────────────────────────────────
+async function loadStatus() {
+  try {
+    const d = await fetch('/api/status').then(r => r.json());
+    document.getElementById('system-status').textContent = d.status||'ACTIVE';
+    const ts = new Date(d.last_updated);
+    document.getElementById('last-updated').textContent =
+      'Updated: '+(isNaN(ts)?d.last_updated:ts.toLocaleTimeString());
+  } catch(e) {}
+}
+
+// ── Refresh All ───────────────────────────────────────────────────────────
+async function refreshAll() {
+  await Promise.all([loadPerformance(), loadAllocation(), loadDecisions(), loadEquityCurve(), loadTicker(), loadStatus()]);
+}
+
+function triggerRefresh() {
+  const btn = document.getElementById('rebalance-btn');
+  const fab = document.querySelector('[title="Refresh"]');
+  if(btn) btn.textContent = '↻ REFRESHING...';
+  if(fab) fab.classList.add('animate-spin');
+  refreshAll().finally(() => {
+    setTimeout(() => {
+      if(btn) btn.textContent = '↺ REBALANCE PORTFOLIO';
+      if(fab) fab.classList.remove('animate-spin');
+    }, 800);
+  });
+}
+
+</script>
+</body>
+</html>
