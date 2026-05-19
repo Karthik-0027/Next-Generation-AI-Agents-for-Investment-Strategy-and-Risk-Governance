@@ -1,84 +1,272 @@
 # Next-Generation AI Agents for Investment Strategy and Risk Governance
 
-## Overview
+An AI-powered investment analytics and portfolio governance platform developed using Python, MongoDB, Flask, Plotly, and Machine Learning techniques.
 
-AI-powered investment analytics platform using Python, MongoDB, Dash, and Plotly. The system uses multiple AI agents for fundamental analysis, sentiment analysis, portfolio construction, risk governance, and backtesting to generate intelligent BUY/HOLD/SELL decisions with an interactive fintech-style dashboard.
-
----
-
-## Features
-
-* Market Data Collection using yfinance
-* Fundamental Analysis Engine
-* News Sentiment Analysis using VADER
-* Agentic AI Governance System
-* Portfolio Construction Engine
-* Backtesting Engine
-* Interactive Dash Dashboard
-* Risk Analytics & Performance Metrics
+The system combines multiple AI agents for market analysis, sentiment evaluation, technical strategy analysis, portfolio optimization, risk governance, and backtesting to generate intelligent BUY / HOLD / SELL investment decisions through a modern fintech-style dashboard.
 
 ---
 
-## Technologies Used
+# Project Overview
+
+This project simulates an AI-driven investment decision platform that integrates:
+
+* Fundamental Analysis
+* News Sentiment Analysis
+* Technical Strategy Evaluation
+* Risk Management
+* Portfolio Construction
+* Backtesting
+* Analytics & Visualization
+
+The platform processes financial market data, generates AI-based investment signals, evaluates portfolio performance, and visualizes results through an interactive dashboard.
+
+---
+
+# Technology Stack
+
+## Backend
 
 * Python
+* Flask
 * MongoDB
-* Dash
-* Plotly
-* yfinance
+
+## Data & Analytics
+
 * Pandas
 * NumPy
+* yfinance
 * VADER Sentiment Analysis
+* Google News RSS
+
+## Visualization
+
+* Plotly
+* TailwindCSS
+* HTML/CSS/JavaScript
 
 ---
 
-## AI Agents
+# System Architecture
 
-* Fundamentals Agent
-* Sentiment Agent
-* Strategy Agent
-* Risk Agent
-* Governance Agent
+Market Data Collection
+        ↓
+Fundamental Analysis
+        ↓
+News Sentiment Analysis
+        ↓
+Agentic AI Governance System
+        ↓
+Portfolio Construction Engine
+        ↓
+Backtesting Engine
+        ↓
+Analytics Engine
+        ↓
+Interactive Dashboard
 
 ---
 
-## Dashboard Features
+# AI Agents
 
-* Portfolio Return Analytics
-* Sharpe Ratio & Alpha
-* Equity Curve Visualization
-* Portfolio Allocation Charts
-* Risk Heatmaps
+## Fundamentals Agent
+
+Analyzes company fundamentals and generates investment signals based on financial strength.
+
+## Sentiment Agent
+
+Uses Google News RSS and VADER sentiment analysis to evaluate market sentiment.
+
+## Strategy Agent
+
+Implements SMA 50 / SMA 200 crossover strategy for technical signal generation.
+
+## Risk Agent
+
+Calculates volatility, detects conflicts between agents, and applies risk governance rules.
+
+## Governance Agent
+
+Combines all AI agent outputs into a weighted composite score to generate final BUY / HOLD / SELL decisions.
+
+---
+
+# Composite Decision Logic
+
+Composite Score Formula:
+
+* Fundamentals Agent → 40%
+* Sentiment Agent → 20%
+* Strategy Agent → 40%
+
+Final Decision Rules:
+
+* BUY → Score ≥ 60
+* HOLD → Score between 40 and 60
+* SELL → Score < 40
+
+---
+
+# Key Features
+
+* Multi-Agent AI Investment System
+* Portfolio Allocation Engine
+* Risk Governance Framework
+* Historical Backtesting
+* Sharpe Ratio Calculation
+* Alpha Calculation
+* Maximum Drawdown Analysis
+* Interactive Fintech Dashboard
+* Real-time Style Auto Refresh
+* MongoDB Data Pipeline
+* AI Explainability System
+
+---
+
+# Dashboard Features
+
+## Portfolio Analytics
+
+* Portfolio Return
+* Benchmark Return
+* Alpha
+* Sharpe Ratio
+* Maximum Drawdown
+
+## Portfolio Visualization
+
+* Portfolio Allocation Donut Chart
+* Equity Curve
+* Benchmark Comparison
+* Cumulative Return Charts
+
+## AI Insights
+
 * AI Decision Distribution
-* BUY/HOLD/SELL Signal Cards
+* Composite Scores
+* AI Confidence Scores
+* BUY / HOLD / SELL Recommendation Cards
+
+## Risk Analytics
+
+* Drawdown Charts
+* Volatility Monitoring
+* Risk Flag Detection
+
+## Real-Time Style Features
+
+* Live Market Ticker
+* Auto Refresh Dashboard
+* Dynamic KPI Cards
+* Interactive Charts
 
 ---
 
-## Project Structure
+# Project Structure
 
 ```bash
-agentic_ai/
-dashboard/
-database/
-data_collection/
-fundamental_analysis/
-main.py
+Major Project/
+│
+├── agentic_ai/
+│   ├── analytics/
+│   ├── backtesting/
+│   ├── governance/
+│   ├── portfolio/
+│   ├── risk/
+│   ├── signals/
+│   ├── config.py
+│   └── pipeline.py
+│
+├── dashboard/
+│   ├── templates/
+│   └── server.py
+│
+├── database/
+├── data_collection/
+├── fundamental_analysis/
+├── config/
+│
+├── main.py
+├── refresh_data.py
+└── test_mongo.py
 ```
 
 ---
 
-## Future Enhancements
+# Backtesting Metrics
 
-* Reinforcement Learning Portfolio Optimization
-* Real-time Market Streaming
-* Advanced UI/UX Improvements
-* 3D Financial Visualizations
-* Cloud Deployment
+The system evaluates strategy performance using:
+
+* Portfolio Return
+* Benchmark Return
+* Alpha
+* Sharpe Ratio
+* Maximum Drawdown
+* Equity Curve Analysis
 
 ---
 
-## Author
+# Dashboard UI
+
+The dashboard is designed with a modern fintech-inspired interface featuring:
+
+* Dark Neon Theme
+* Glassmorphism Design
+* Interactive Plotly Visualizations
+* Dynamic AI Recommendation Cards
+* Portfolio Heatmaps
+* Animated Charts
+* Live Market Ticker
+
+---
+
+# Future Enhancements
+
+* Reinforcement Learning Portfolio Optimization
+* Real-Time Market Streaming
+* Cloud Deployment
+* Advanced Risk Analytics
+* 3D Financial Visualizations
+* LLM-Based Financial Reasoning
+* AI Chat Assistant for Portfolio Insights
+
+---
+
+# Installation
+
+## Clone Repository
+
+```bash
+git clone https://github.com/Karthik-0027/Next-Generation-AI-Agents-for-Investment-Strategy-and-Risk-Governance.git
+```
+
+## Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## Run Project
+
+```bash
+python main.py
+```
+
+## Launch Dashboard
+
+```bash
+python dashboard/server.py
+```
+
+---
+
+# Author
 
 Karthik Gollapudi
 B.Tech – Data Science
 Bapatla Engineering College
+
+---
+
+# Project Status
+
+Completed and fully functional end-to-end AI investment analytics pipeline with interactive dashboard and portfolio governance system.
